@@ -358,11 +358,11 @@
   "settings": {},
   "staticData": {
     "global": {
-      "lastExecutionTimestamp": 1682005540566
+      "lastExecutionTimestamp": 1682006140283
     }
   },
   "tags": [],
   "triggerCount": 1,
-  "updatedAt": "2023-04-20T15:45:40.000Z",
+  "updatedAt": "2023-04-20T15:55:40.000Z",
   "versionId": "f5efa832-07c7-43a8-8cf5-7e30c721f803"
 }
