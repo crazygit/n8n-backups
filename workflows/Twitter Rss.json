@@ -1,0 +1,254 @@
+{
+  "active": false,
+  "connections": {
+    "Filter Old Tweets": {
+      "main": [
+        [
+          {
+            "node": "Sort Tweets by Time",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sort Tweets by Time": {
+      "main": [
+        [
+          {
+            "node": "Set Tweet Raw Link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Tweet Raw Link": {
+      "main": [
+        [
+          {
+            "node": "Send To Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Date & Time": {
+      "main": [
+        [
+          {
+            "node": "Filter Old Tweets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "turingou",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "turingou": {
+      "main": [
+        [
+          {
+            "node": "Date & Time",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2023-04-20T03:29:28.315Z",
+  "id": "1",
+  "name": "Twitter Rss",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## How to get private channel chat id\n\n1. You should convert the private channel to public with some `@channelName`\n\n2. Send a message to this channel through the Bot API:\n\nhttps://api.telegram.org/bot{bot_token}/sendMessage?chat_id=@{channel_name}&text=hello\n\n3. As the response, you will get information with chat_id of your channel.\n\n```json\n{\n  \"ok\" : true,\n  \"result\" : {\n    \"chat\" : {\n      **\"id\" : -1001005582487,**\n      \"title\" : \"Test Private Channel\",\n      \"type\" : \"channel\"\n    },\n    \"date\" : 1448245538,\n    \"message_id\" : 7,\n    \"text\" : \"123ds\"\n  }\n}\n```\nNow you can convert the channel back to private (by deleting the channel's link) and send a message directly to the chat_id `-1001005582487`:\n\nhttps://api.telegram.org/bot{bot_token}/sendMessage?chat_id=-1001005582487&text=123\n\nPS: chat_id no need `@` symbol now.",
+        "height": 700,
+        "width": 569
+      },
+      "id": "2cdb3695-a711-4ca5-84cb-308802c6fc7a",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1800,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the static data of the node\nconst nodeStaticData = $getWorkflowStaticData('node');\n\n// Access its data\nconst lastExecutionTimestamp = nodeStaticData.lastExecutionTimestamp;\nconsole.log(lastExecutionTimestamp || \"No lastExecutionTimestamp\")\n\nlet items = $input.all();\nlet itemsNeedPush = [];\nif (lastExecutionTimestamp) {\n  for (const item of items) {\n    if( item.json.timestamp < lastExecutionTimestamp) {\n      continue\n    }\n    itemsNeedPush.push(item);\n  }\n}\nelse {\n  itemsNeedPush = items.slice(0, items.length > 3 ? 3 : items.length);\n}\n\n// Update lastExecution\nnodeStaticData.lastExecutionTimestamp = new Date().getTime();\nreturn itemsNeedPush;"
+      },
+      "id": "c9adb13b-8428-4b1b-b659-546b7e974321",
+      "name": "Filter Old Tweets",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        540,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "sort",
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "isoDate"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f8d88e49-b2c7-4dc1-8502-ea6ee152c528",
+      "name": "Sort Tweets by Time",
+      "type": "n8n-nodes-base.itemLists",
+      "typeVersion": 2,
+      "position": [
+        760,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "-1001843718451",
+        "text": "=From: {{ $json[\"creator\"] }}\n\n{{ $json[\"contentSnippet\"] }}\n\n{{ $json[\"rawLink\"] }}\n",
+        "additionalFields": {}
+      },
+      "id": "2aa08e4d-c814-4f00-b17c-c58c344e8306",
+      "name": "Send To Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        1240,
+        400
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "1",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "rawLink",
+              "value": "={{ $json[\"link\"].replace(\"https://nitter.net/\", \"https://twitter.com/\") }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c5b378d8-d3eb-488b-b3a6-e0409d866d33",
+      "name": "Set Tweet Raw Link",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "value": "={{ $json.isoDate }}",
+        "dataPropertyName": "timestamp",
+        "toFormat": "X",
+        "options": {}
+      },
+      "id": "2ab08598-eea8-48c8-9b70-ba0806b7d935",
+      "name": "Date & Time",
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 1,
+      "position": [
+        340,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "id": "4793566d-8a24-4b8d-aac7-d399118d0606",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -100,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://nitter.net/turingou/rss"
+      },
+      "id": "355e2071-e749-47b2-812f-ea4a612d1dfe",
+      "name": "turingou",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [
+        140,
+        400
+      ],
+      "notesInFlow": true,
+      "notes": "RSS郭宇的账户"
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "saveManualExecutions": false,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "3"
+  },
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrencyRules": []
+    },
+    "node:Filter Old Tweets": {
+      "lastExecutionTimestamp": 1681983298936
+    }
+  },
+  "tags": [
+    {
+      "createdAt": "2023-04-20T06:56:07.340Z",
+      "updatedAt": "2023-04-20T06:56:07.340Z",
+      "id": "1",
+      "name": "twitter"
+    },
+    {
+      "createdAt": "2023-04-20T06:56:09.089Z",
+      "updatedAt": "2023-04-20T06:56:09.089Z",
+      "id": "2",
+      "name": "rss"
+    },
+    {
+      "createdAt": "2023-04-20T06:56:13.570Z",
+      "updatedAt": "2023-04-20T06:56:13.570Z",
+      "id": "3",
+      "name": "telegram"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2023-04-20T09:39:06.000Z",
+  "versionId": "a8521a82-9633-4eda-aefe-33cf59d2bbc4"
+}
