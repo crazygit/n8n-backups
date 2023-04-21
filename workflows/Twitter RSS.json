@@ -12,17 +12,6 @@
         ]
       ]
     },
-    "Filter Old Tweets": {
-      "main": [
-        [
-          {
-            "node": "Add Extra Fields",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "SplitInBatches": {
       "main": [
         [
@@ -76,7 +65,7 @@
       "main": [
         [
           {
-            "node": "Filter Old Tweets",
+            "node": "Extract TweetId",
             "type": "main",
             "index": 0
           }
@@ -122,6 +111,39 @@
           }
         ]
       ]
+    },
+    "Extract TweetId": {
+      "main": [
+        [
+          {
+            "node": "Sort Tweet Id By Descending",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Old Tweets By tweetId": {
+      "main": [
+        [
+          {
+            "node": "Add Extra Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sort Tweet Id By Descending": {
+      "main": [
+        [
+          {
+            "node": "Filter Old Tweets By tweetId",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "createdAt": "2023-04-20T08:28:41.796Z",
@@ -135,29 +157,16 @@
       "name": "RSS Feed Read",
       "type": "n8n-nodes-base.rssFeedRead",
       "position": [
-        1080,
-        700
+        660,
+        1140
       ],
       "typeVersion": 1,
       "id": "1858a794-5ffd-452e-819a-cc7b54838e2a"
     },
     {
       "parameters": {
-        "jsCode": "console.log(\"begin filter at\", new Date().getTime())\n// Get the static data of the node\nconst globalStaticData = $getWorkflowStaticData('global');\n\n// Access its data\nconst lastExecutionTimestamp = globalStaticData.lastExecutionTimestamp;\nconsole.log(\"Get lastExecutionTimestamp\", lastExecutionTimestamp || \"\")\n\nlet items = $input.all();\nlet itemsNeedPush = [];\nif (lastExecutionTimestamp) {\n  for (const item of items) {\n    itemTimestamp = new Date(item.json.isoDate).getTime();\n    if( itemTimestamp < lastExecutionTimestamp) {\n      console.log(\"item %s < %s, drop: %s\", itemTimestamp, lastExecutionTimestamp, item.json.title)\n      continue\n    }\n    console.log(\"item %s > %s, push: %s\", itemTimestamp, lastExecutionTimestamp, item.json.title)\n    itemsNeedPush.push(item);\n  }\n} else {\n  // 首次运行，推送三条消息即可\n  itemsNeedPush = items.slice(0, items.length > 3 ? 3 : items.length);\n}\n\n// Update lastExecution\nlet newlastExecutionTimestamp = new Date().getTime();\nglobalStaticData.lastExecutionTimestamp = newlastExecutionTimestamp;\nconsole.log(\"Set lastExecutionTimestamp to\", newlastExecutionTimestamp);\n// 按照时间正序排序\nreturn itemsNeedPush.reverse();"
-      },
-      "id": "70414c08-e8bd-4922-a88e-ed8989befe82",
-      "name": "Filter Old Tweets",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 1,
-      "position": [
-        1660,
-        1160
-      ]
-    },
-    {
-      "parameters": {
         "chatId": "-1001843718451",
-        "text": "=来自: {{ $json[\"fullName\"] }} \n{{ $json[\"contentSnippet\"] }}\n\n<a href=\"{{ $json[\"rawLink\"] }}\">查看原推</a>\n",
+        "text": "=#推文\n\n来自: {{ $json[\"fullName\"] }} \n{{ $json[\"title\"] }}\n\n<a href=\"{{ $json[\"rawLink\"] }}\">查看原推</a>\n发布时间: {{ $json[\"isoDate\"] }}\n",
         "additionalFields": {
           "parse_mode": "HTML"
         }
@@ -167,8 +176,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1,
       "position": [
-        2540,
-        1160
+        2880,
+        740
       ],
       "credentials": {
         "telegramApi": {
@@ -185,8 +194,8 @@
       "name": "SplitInBatches",
       "type": "n8n-nodes-base.splitInBatches",
       "position": [
-        800,
-        700
+        340,
+        1140
       ],
       "typeVersion": 1,
       "id": "b2e13ead-e147-4880-baed-17143a3c47e6"
@@ -206,7 +215,7 @@
       "name": "每5分钟执行一次",
       "type": "n8n-nodes-base.cron",
       "position": [
-        60,
+        -200,
         700
       ],
       "typeVersion": 1,
@@ -224,7 +233,7 @@
       "type": "n8n-nodes-base.grist",
       "typeVersion": 1,
       "position": [
-        400,
+        120,
         700
       ],
       "credentials": {
@@ -251,7 +260,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 2,
       "position": [
-        1120,
+        760,
         440
       ],
       "notes": "Add @ before username"
@@ -275,8 +284,8 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 2,
       "position": [
-        1980,
-        680
+        1320,
+        740
       ],
       "notesInFlow": false
     },
@@ -288,8 +297,8 @@
       "name": "Merge loop items",
       "type": "n8n-nodes-base.code",
       "position": [
-        1600,
-        680
+        1180,
+        1120
       ],
       "typeVersion": 1
     },
@@ -309,8 +318,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
       "position": [
-        1340,
-        700
+        900,
+        1140
       ]
     },
     {
@@ -334,8 +343,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 2,
       "position": [
-        2000,
-        1160
+        2520,
+        740
       ],
       "notesInFlow": true,
       "notes": "Set tweet raw url link && fullname"
@@ -351,8 +360,85 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        2380,
-        480
+        2760,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function extractIdFromUrl(url) {\n  const regex = /\\/status\\/(\\d+)/;\n  const match = url.match(regex);\n  if (match) {\n    return match[1];\n  } else {\n    return null;\n  }\n}\nfor (const item of $input.all()) {\n  item.json.tweetId = extractIdFromUrl(item.json.guid);\n}\n\nreturn $input.all();"
+      },
+      "id": "c13f6363-2b6d-4caf-aeab-b1531632175b",
+      "name": "Extract TweetId",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        1680,
+        740
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function timestampToHuman(timestampInMillis) {\n    return DateTime.fromMillis(timestampInMillis).toISO();\n}\n\n\nconsole.log(\"begin filter at\", $now.toISO());\n// Get the static data of the node\nconst globalStaticData = $getWorkflowStaticData('global');\n\n// Access its data\nconst lastExecutionTimestamp = globalStaticData.lastExecutionTimestamp;\nconsole.log(\"Get lastExecutionTimestamp\", lastExecutionTimestamp ? timestampToHuman(lastExecutionTimestamp) : \"\")\n\nlet items = $input.all();\nlet itemsNeedPush = [];\nif (lastExecutionTimestamp) {\n  for (const item of items) {\n    itemTimestamp = new Date(item.json.isoDate).getTime();\n    if( itemTimestamp < lastExecutionTimestamp) {\n      console.log(\"item %s < %s, drop: %s\", timestampToHuman(itemTimestamp), timestampToHuman(lastExecutionTimestamp), item.json.title)\n      continue\n    }\n    console.log(\"item %s > %s, push: %s\", timestampToHuman(itemTimestamp), timestampToHuman(lastExecutionTimestamp), item.json.title)\n    itemsNeedPush.push(item);\n  }\n} else {\n  // 首次运行，推送三条消息即可\n  itemsNeedPush = items.slice(0, items.length > 3 ? 3 : items.length);\n}\n\n// Update lastExecution\nlet newlastExecutionTimestamp = new Date().getTime();\nglobalStaticData.lastExecutionTimestamp = newlastExecutionTimestamp;\nconsole.log(\"Set lastExecutionTimestamp to\", timestampToHuman(newlastExecutionTimestamp));\n// 按照时间正序排序\nreturn itemsNeedPush.reverse();"
+      },
+      "id": "e096dccb-a487-42ce-b951-9ee4ee0614ae",
+      "name": "Filter Old Tweets1 lastExecutionTimestamp",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        2260,
+        1160
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "根据上次执行的时间来过滤tweet信息时，会因为获取tweet的延迟，导致漏掉很多tweet无法发送出来，因此改用保存ID的形式来使用",
+        "height": 313.38441757353155,
+        "width": 373.0835387770347
+      },
+      "id": "04971a72-4bab-469d-8a96-a31600bb471e",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2180,
+        1040
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "console.log(\"begin filter at\", $now.toISO());\n// Get the static data of the node\nconst globalStaticData = $getWorkflowStaticData('global');\nconst lastTweetId = globalStaticData.lastTweetId;\nconsole.log(\"Get lastTweetId\", lastTweetId || \"\")\n\nlet items = $input.all();\nlet itemsNeedPush = [];\nif (lastTweetId) {\n  for (const item of items) {\n    if( item.json.tweetId <= lastTweetId) {\n      console.log(\"item %s <= %s, drop: %s\", item.json.tweetId, lastTweetId, item.json.title)\n      continue\n    }\n    console.log(\"item %s > %s, push: %s\", item.json.tweetId, lastTweetId, item.json.title)\n    itemsNeedPush.push(item);\n  }\n} else {\n  // 首次运行，推送前三条消息即可\n  itemsNeedPush = items.slice(0, items.length > 3 ? 3 : items.length);\n}\nif (itemsNeedPush.length > 0) {\n  let maxTweetId = itemsNeedPush[0].json.tweetId;\n  globalStaticData.lastTweetId = maxTweetId;\n  console.log(\"Set lastTweetId to\", maxTweetId);\n} else {\n  console.log(\"no new tweet need push to telegram\")\n}\n\n// 按照时间正序排序\nreturn itemsNeedPush.reverse();"
+      },
+      "id": "70414c08-e8bd-4922-a88e-ed8989befe82",
+      "name": "Filter Old Tweets By tweetId",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        2260,
+        740
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "sort",
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "tweetId",
+              "order": "descending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9e343575-ea45-419b-985c-d5f33090ad2d",
+      "name": "Sort Tweet Id By Descending",
+      "type": "n8n-nodes-base.itemLists",
+      "typeVersion": 2,
+      "position": [
+        1980,
+        740
       ]
     }
   ],
@@ -364,11 +450,12 @@
   },
   "staticData": {
     "global": {
-      "lastExecutionTimestamp": 1682049068506
+      "lastExecutionTimestamp": 1682071241599,
+      "lastTweetId": "1649398559803080706"
     }
   },
   "tags": [],
   "triggerCount": 1,
-  "updatedAt": "2023-04-21T03:55:35.000Z",
-  "versionId": "ff2d32f6-b6d0-40e2-bb61-de332dd1f2db"
+  "updatedAt": "2023-04-21T13:11:21.000Z",
+  "versionId": "22036dc1-72b3-43fa-a460-0ff5d8a581d2"
 }
