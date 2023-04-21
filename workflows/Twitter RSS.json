@@ -1,0 +1,374 @@
+{
+  "active": true,
+  "connections": {
+    "RSS Feed Read": {
+      "main": [
+        [
+          {
+            "node": "Done Looping ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Old Tweets": {
+      "main": [
+        [
+          {
+            "node": "Add Extra Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SplitInBatches": {
+      "main": [
+        [
+          {
+            "node": "RSS Feed Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "每5分钟执行一次": {
+      "main": [
+        [
+          {
+            "node": "从Grist获取关心的用户列表",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "从Grist获取关心的用户列表": {
+      "main": [
+        [
+          {
+            "node": "Format username",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "SplitInBatches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format username": {
+      "main": [
+        [
+          {
+            "node": "Merge User Nickname",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge User Nickname": {
+      "main": [
+        [
+          {
+            "node": "Filter Old Tweets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge loop items": {
+      "main": [
+        [
+          {
+            "node": "Merge User Nickname",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Done Looping ?": {
+      "main": [
+        [
+          {
+            "node": "Merge loop items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SplitInBatches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Extra Fields": {
+      "main": [
+        [
+          {
+            "node": "Send To Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2023-04-20T08:28:41.796Z",
+  "id": "2",
+  "name": "Twitter RSS",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "=https://nitter.net/{{ $json.username }}/rss"
+      },
+      "name": "RSS Feed Read",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "position": [
+        1080,
+        700
+      ],
+      "typeVersion": 1,
+      "id": "1858a794-5ffd-452e-819a-cc7b54838e2a"
+    },
+    {
+      "parameters": {
+        "jsCode": "console.log(\"begin filter at\", new Date().getTime())\n// Get the static data of the node\nconst globalStaticData = $getWorkflowStaticData('global');\n\n// Access its data\nconst lastExecutionTimestamp = globalStaticData.lastExecutionTimestamp;\nconsole.log(\"Get lastExecutionTimestamp\", lastExecutionTimestamp || \"\")\n\nlet items = $input.all();\nlet itemsNeedPush = [];\nif (lastExecutionTimestamp) {\n  for (const item of items) {\n    itemTimestamp = new Date(item.json.isoDate).getTime();\n    if( itemTimestamp < lastExecutionTimestamp) {\n      console.log(\"item %s < %s, drop: %s\", itemTimestamp, lastExecutionTimestamp, item.json.title)\n      continue\n    }\n    console.log(\"item %s > %s, push: %s\", itemTimestamp, lastExecutionTimestamp, item.json.title)\n    itemsNeedPush.push(item);\n  }\n} else {\n  // 首次运行，推送三条消息即可\n  itemsNeedPush = items.slice(0, items.length > 3 ? 3 : items.length);\n}\n\n// Update lastExecution\nlet newlastExecutionTimestamp = new Date().getTime();\nglobalStaticData.lastExecutionTimestamp = newlastExecutionTimestamp;\nconsole.log(\"Set lastExecutionTimestamp to\", newlastExecutionTimestamp);\n// 按照时间正序排序\nreturn itemsNeedPush.reverse();"
+      },
+      "id": "70414c08-e8bd-4922-a88e-ed8989befe82",
+      "name": "Filter Old Tweets",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        1660,
+        1160
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "-1001843718451",
+        "text": "=来自: {{ $json[\"fullName\"] }} \n{{ $json[\"contentSnippet\"] }}\n\n<a href=\"{{ $json[\"rawLink\"] }}\">查看原推</a>\n",
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "6679b66b-dff7-444e-a299-2f22f884d83c",
+      "name": "Send To Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        2540,
+        1160
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "1",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "name": "SplitInBatches",
+      "type": "n8n-nodes-base.splitInBatches",
+      "position": [
+        800,
+        700
+      ],
+      "typeVersion": 1,
+      "id": "b2e13ead-e147-4880-baed-17143a3c47e6"
+    },
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "everyX",
+              "value": 5,
+              "unit": "minutes"
+            }
+          ]
+        }
+      },
+      "name": "每5分钟执行一次",
+      "type": "n8n-nodes-base.cron",
+      "position": [
+        60,
+        700
+      ],
+      "typeVersion": 1,
+      "id": "03d23910-9f31-41ae-a96f-d939d068538b"
+    },
+    {
+      "parameters": {
+        "docId": "vTXbsbmbfu3zDd6n3R51eC",
+        "tableId": "TwitterAccounts",
+        "returnAll": "true",
+        "additionalOptions": {}
+      },
+      "id": "390dd402-db93-4391-ac6f-1557083ef866",
+      "name": "从Grist获取关心的用户列表",
+      "type": "n8n-nodes-base.grist",
+      "typeVersion": 1,
+      "position": [
+        400,
+        700
+      ],
+      "credentials": {
+        "gristApi": {
+          "id": "2",
+          "name": "Grist account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "creator",
+              "value": "=@{{ $json.username }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "757b8c10-a9b4-4b94-be50-41b86c8708b1",
+      "name": "Format username",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        440
+      ],
+      "notes": "Add @ before username"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "creator",
+              "field2": "creator"
+            }
+          ]
+        },
+        "joinMode": "enrichInput2",
+        "options": {}
+      },
+      "id": "168da161-76f9-4071-87b5-081b2e9fdb42",
+      "name": "Merge User Nickname",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [
+        1980,
+        680
+      ],
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "jsCode": "let results = []\nlet i = 0;\n\ndo {\n  try {\n    results = results.concat($('RSS Feed Read').all(0, i));\n  } catch (error) {\n    return results;\n  }\n  i++;\n} while (true);\n"
+      },
+      "id": "2ec0f081-e4e6-449e-989b-ec5e2b779a3c",
+      "name": "Merge loop items",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        1600,
+        680
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $('SplitInBatches').context['noItemsLeft'] }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "d6972b61-a962-47da-8448-f9367b6bf4c9",
+      "name": "Done Looping ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "rawLink",
+              "value": "={{ $json[\"link\"].replace(\"https://nitter.net/\", \"https://twitter.com/\") }}"
+            },
+            {
+              "name": "fullName",
+              "value": "={{$json[\"nickname\"] ? $json[\"nickname\"] + \"(\" + $json[\"creator\"] + \")\" : $json[\"creator\"]}}\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "eb1b12ba-b81f-4ca5-9d56-62264c60b7ac",
+      "name": "Add Extra Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        1160
+      ],
+      "notesInFlow": true,
+      "notes": "Set tweet raw url link && fullname"
+    },
+    {
+      "parameters": {
+        "content": "## How to get private channel chat id\n\n1. You should convert the private channel to public with some `@channelName`\n\n2. Send a message to this channel through the Bot API:\n\nhttps://api.telegram.org/bot{bot_token}/sendMessage?chat_id=@{channel_name}&text=hello\n\n3. As the response, you will get information with chat_id of your channel.\n\n```json\n{\n  \"ok\" : true,\n  \"result\" : {\n    \"chat\" : {\n      **\"id\" : -1001005582487,**\n      \"title\" : \"Test Private Channel\",\n      \"type\" : \"channel\"\n    },\n    \"date\" : 1448245538,\n    \"message_id\" : 7,\n    \"text\" : \"123ds\"\n  }\n}\n```\nNow you can convert the channel back to private (by deleting the channel's link) and send a message directly to the chat_id `-1001005582487`:\n\nhttps://api.telegram.org/bot{bot_token}/sendMessage?chat_id=-1001005582487&text=123\n\nPS: chat_id no need `@` symbol now.",
+        "height": 879.5876963350784,
+        "width": 726.6380890052357
+      },
+      "id": "d37a4b60-beb7-4ba7-932f-e631b651f24f",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2380,
+        480
+      ]
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "saveManualExecutions": false,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "3"
+  },
+  "staticData": {
+    "global": {
+      "lastExecutionTimestamp": 1682049068506
+    }
+  },
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2023-04-21T03:55:35.000Z",
+  "versionId": "ff2d32f6-b6d0-40e2-bb61-de332dd1f2db"
+}
