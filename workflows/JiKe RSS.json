@@ -1,15 +1,141 @@
 {
-  "active": false,
-  "connections": {},
+  "active": true,
+  "connections": {
+    "RSS Feed Read": {
+      "main": [
+        [
+          {
+            "node": "Filter Old Tweets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Old Tweets": {
+      "main": [
+        [
+          {
+            "node": "Send To Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "每5分钟执行一次": {
+      "main": [
+        [
+          {
+            "node": "RSS Feed Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
   "createdAt": "2023-04-21T03:56:43.625Z",
   "id": "6",
   "name": "JiKe RSS",
-  "nodes": [],
+  "nodes": [
+    {
+      "parameters": {
+        "url": "=https://rsshub.app/jike/topic/57a9aca23436301200893cff"
+      },
+      "name": "RSS Feed Read",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "position": [
+        820,
+        1260
+      ],
+      "typeVersion": 1,
+      "id": "5113d992-6fbd-4e1f-b08f-8d3fec81202f",
+      "notesInFlow": true,
+      "notes": "即刻iOS开发者小站圈子"
+    },
+    {
+      "parameters": {
+        "jsCode": "console.log(\"begin filter at\", new Date().getTime())\n// Get the static data of the node\nconst globalStaticData = $getWorkflowStaticData('global');\n\n// Access its data\nconst lastExecutionTimestamp = globalStaticData.lastExecutionTimestamp;\nconsole.log(\"Get lastExecutionTimestamp\", lastExecutionTimestamp || \"\")\n\nlet items = $input.all();\nlet itemsNeedPush = [];\nif (lastExecutionTimestamp) {\n  for (const item of items) {\n    itemTimestamp = new Date(item.json.isoDate).getTime();\n    if( itemTimestamp < lastExecutionTimestamp) {\n      console.log(\"item %s < %s, drop: %s\", itemTimestamp, lastExecutionTimestamp, item.json.title)\n      continue\n    }\n    console.log(\"item %s > %s, push: %s\", itemTimestamp, lastExecutionTimestamp, item.json.title)\n    itemsNeedPush.push(item);\n  }\n} else {\n  // 首次运行，推送三条消息即可\n  itemsNeedPush = items.slice(0, items.length > 3 ? 3 : items.length);\n}\n\n// Update lastExecution\nlet newlastExecutionTimestamp = new Date().getTime();\nglobalStaticData.lastExecutionTimestamp = newlastExecutionTimestamp;\nconsole.log(\"Set lastExecutionTimestamp to\", newlastExecutionTimestamp);\n// 按照时间正序排序\nreturn itemsNeedPush.reverse();"
+      },
+      "id": "4f86b277-359a-466e-aefb-966c2f813180",
+      "name": "Filter Old Tweets",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        1260
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "-1001843718451",
+        "text": "=#即刻iOS开发者小站\n\n来自: {{ $json[\"creator\"] }} \n{{ $json[\"contentSnippet\"] }}\n\n<a href=\"{{ $json[\"link\"] }}\">查看原文</a>\n",
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "90646d98-efe9-48ad-b484-b2642916e974",
+      "name": "Send To Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        1420,
+        1260
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "1",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "everyX",
+              "value": 5,
+              "unit": "minutes"
+            }
+          ]
+        }
+      },
+      "name": "每5分钟执行一次",
+      "type": "n8n-nodes-base.cron",
+      "position": [
+        480,
+        1260
+      ],
+      "typeVersion": 1,
+      "id": "16c63858-fc8f-418a-bfaa-8558c9e32dff"
+    },
+    {
+      "parameters": {
+        "content": "## How to get private channel chat id\n\n1. You should convert the private channel to public with some `@channelName`\n\n2. Send a message to this channel through the Bot API:\n\nhttps://api.telegram.org/bot{bot_token}/sendMessage?chat_id=@{channel_name}&text=hello\n\n3. As the response, you will get information with chat_id of your channel.\n\n```json\n{\n  \"ok\" : true,\n  \"result\" : {\n    \"chat\" : {\n      **\"id\" : -1001005582487,**\n      \"title\" : \"Test Private Channel\",\n      \"type\" : \"channel\"\n    },\n    \"date\" : 1448245538,\n    \"message_id\" : 7,\n    \"text\" : \"123ds\"\n  }\n}\n```\nNow you can convert the channel back to private (by deleting the channel's link) and send a message directly to the chat_id `-1001005582487`:\n\nhttps://api.telegram.org/bot{bot_token}/sendMessage?chat_id=-1001005582487&text=123\n\nPS: chat_id no need `@` symbol now.",
+        "height": 879.5876963350784,
+        "width": 726.6380890052357
+      },
+      "id": "c0c752c5-d3d4-4001-9c6f-d9769594559d",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        640
+      ]
+    }
+  ],
   "pinData": {},
   "settings": {},
-  "staticData": null,
+  "staticData": {
+    "global": {
+      "lastExecutionTimestamp": 1682092522245
+    }
+  },
   "tags": [],
-  "triggerCount": 0,
-  "updatedAt": "2023-04-21T03:56:43.625Z",
-  "versionId": "0d460133-1830-44d2-86ab-0f23a3edf53a"
+  "triggerCount": 1,
+  "updatedAt": "2023-04-21T15:55:22.000Z",
+  "versionId": "ae3c50db-e42c-47ec-8fd3-e386203d6318"
 }
