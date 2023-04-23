@@ -31,7 +31,7 @@
     {
       "parameters": {
         "chatId": "=-1001843718451",
-        "text": "=WorkFlow: {{ $json[\"workflow\"][\"name\"] }}\nError: {{ $json[\"execution\"][\"error\"][\"message\"] }}\nUrl: {{ $json[\"execution\"][\"url\"] }}\nStacktrace: {{ $json[\"execution\"][\"error\"][\"stack\"] }}",
+        "text": "=#Error\n\nWorkFlow: {{ $json[\"workflow\"][\"name\"] }}\nError: {{ $json[\"execution\"][\"error\"][\"message\"] }}\nUrl: {{ $json[\"execution\"][\"url\"] }}\nStacktrace: {{ $json[\"execution\"][\"error\"][\"stack\"] }}",
         "additionalFields": {}
       },
       "id": "251c1754-9441-4fed-bdae-18303584b71e",
@@ -55,6 +55,6 @@
   "staticData": null,
   "tags": [],
   "triggerCount": 0,
-  "updatedAt": "2023-04-21T03:22:26.000Z",
-  "versionId": "0cb1b404-1105-4d40-a8ae-8cd85f4d3598"
+  "updatedAt": "2023-04-23T01:20:09.000Z",
+  "versionId": "a16d2ae4-0e80-4b21-b18d-6dc20175a7ae"
 }
