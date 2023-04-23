@@ -166,7 +166,7 @@
     {
       "parameters": {
         "chatId": "-1001843718451",
-        "text": "=#推文\n\n来自: {{ $json[\"fullName\"] }} \n{{ $json[\"title\"] }}\n\n<a href=\"{{ $json[\"rawLink\"] }}\">查看原推</a>\n发布时间: {{ $json[\"isoDate\"] }}\n",
+        "text": "=#推文\n\n来自: {{ $json[\"fullName\"] }} \n{{ $json[\"title\"] }}\n\n发布时间: {{ new Date($json[\"isoDate\"]).toLocaleString(\"zh\", { hour12: false, timeZoneName: \"short\" , timeZone: \"Asia/Shanghai\"}) }}\n\n<a href=\"{{ $json[\"rawLink\"] }}\">查看原推</a>\n\n",
         "additionalFields": {
           "parse_mode": "HTML"
         }
@@ -451,11 +451,11 @@
   "staticData": {
     "global": {
       "lastExecutionTimestamp": 1682071241599,
-      "lastTweetId": "1649398559803080706"
+      "lastTweetId": "1649939155424509954"
     }
   },
   "tags": [],
   "triggerCount": 1,
-  "updatedAt": "2023-04-21T13:11:21.000Z",
-  "versionId": "22036dc1-72b3-43fa-a460-0ff5d8a581d2"
+  "updatedAt": "2023-04-23T01:11:15.000Z",
+  "versionId": "9e96971b-0fd5-463d-a898-8eabfd8f9c61"
 }
