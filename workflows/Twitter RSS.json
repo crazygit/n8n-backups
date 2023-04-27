@@ -23,17 +23,6 @@
         ]
       ]
     },
-    "每5分钟执行一次": {
-      "main": [
-        [
-          {
-            "node": "从Grist获取关心的用户列表",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "从Grist获取关心的用户列表": {
       "main": [
         [
@@ -144,6 +133,17 @@
           }
         ]
       ]
+    },
+    "每30分钟执行一次": {
+      "main": [
+        [
+          {
+            "node": "从Grist获取关心的用户列表",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "createdAt": "2023-04-20T08:28:41.796Z",
@@ -199,27 +199,6 @@
       ],
       "typeVersion": 1,
       "id": "b2e13ead-e147-4880-baed-17143a3c47e6"
-    },
-    {
-      "parameters": {
-        "triggerTimes": {
-          "item": [
-            {
-              "mode": "everyX",
-              "value": 5,
-              "unit": "minutes"
-            }
-          ]
-        }
-      },
-      "name": "每5分钟执行一次",
-      "type": "n8n-nodes-base.cron",
-      "position": [
-        -200,
-        700
-      ],
-      "typeVersion": 1,
-      "id": "03d23910-9f31-41ae-a96f-d939d068538b"
     },
     {
       "parameters": {
@@ -440,6 +419,27 @@
         1980,
         740
       ]
+    },
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "everyX",
+              "value": 30,
+              "unit": "minutes"
+            }
+          ]
+        }
+      },
+      "name": "每30分钟执行一次",
+      "type": "n8n-nodes-base.cron",
+      "position": [
+        -200,
+        700
+      ],
+      "typeVersion": 1,
+      "id": "03d23910-9f31-41ae-a96f-d939d068538b"
     }
   ],
   "pinData": {},
@@ -451,11 +451,11 @@
   "staticData": {
     "global": {
       "lastExecutionTimestamp": 1682071241599,
-      "lastTweetId": "1650869036690059265"
+      "lastTweetId": "1651602599345373186"
     }
   },
   "tags": [],
   "triggerCount": 1,
-  "updatedAt": "2023-04-25T14:30:30.000Z",
-  "versionId": "9e96971b-0fd5-463d-a898-8eabfd8f9c61"
+  "updatedAt": "2023-04-27T15:30:47.000Z",
+  "versionId": "890b32c9-33ed-4fa4-b52f-407f142e092e"
 }
