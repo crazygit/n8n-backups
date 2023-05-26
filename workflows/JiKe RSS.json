@@ -131,11 +131,11 @@
   "settings": {},
   "staticData": {
     "global": {
-      "lastExecutionTimestamp": 1685030111727
+      "lastExecutionTimestamp": 1685073311772
     }
   },
   "tags": [],
   "triggerCount": 1,
-  "updatedAt": "2023-05-25T15:55:11.000Z",
+  "updatedAt": "2023-05-26T03:55:11.000Z",
   "versionId": "ae3c50db-e42c-47ec-8fd3-e386203d6318"
 }
